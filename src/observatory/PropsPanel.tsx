@@ -90,7 +90,7 @@ function renderControl(
         <input
           id={`prop-${prop.name}`}
           type="number"
-          value={value === UNSET ? '' : (value as number) ?? 0}
+          value={value === UNSET ? '' : ((value as number) ?? 0)}
           placeholder={!prop.required ? 'Unset' : undefined}
           onChange={(e) => {
             if (e.target.value === '' && !prop.required) {
@@ -107,7 +107,7 @@ function renderControl(
         <input
           id={`prop-${prop.name}`}
           type="text"
-          value={value === UNSET ? '' : (value as string) ?? ''}
+          value={value === UNSET ? '' : ((value as string) ?? '')}
           placeholder={!prop.required ? 'Unset' : undefined}
           onChange={(e) => {
             if (e.target.value === '' && !prop.required) {
