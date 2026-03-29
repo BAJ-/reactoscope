@@ -95,7 +95,8 @@ function App() {
     }
 
     import.meta.hot.on('observatory:schema-update', refetchSchema)
-    return () => import.meta.hot!.off('observatory:schema-update', refetchSchema)
+    return () =>
+      import.meta.hot!.off('observatory:schema-update', refetchSchema)
   }, [componentPath])
 
   // Send props to the iframe whenever they change
