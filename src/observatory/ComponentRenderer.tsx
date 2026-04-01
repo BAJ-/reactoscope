@@ -6,7 +6,12 @@ import {
   readPropsFromUrl,
 } from './resolveProps'
 import { ErrorBoundary } from './ErrorBoundary'
-import { MSG_PROPS, API_SCHEMA } from './constants'
+import {
+  MSG_PROPS,
+  MSG_RENDERED,
+  API_SCHEMA,
+  COMPONENT_ROOT_ID,
+} from './constants'
 
 export function ComponentRenderer() {
   const params = new URLSearchParams(window.location.search)
@@ -54,6 +59,13 @@ export function ComponentRenderer() {
     return () => window.removeEventListener('message', handleMessage)
   }, [])
 
+  // Signal to parent that we've rendered after each props change
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.parent.postMessage({ type: MSG_RENDERED }, window.location.origin)
+    })
+  }, [serializableProps])
+
   const resolvedProps =
     propInfos.length > 0
       ? resolveProps(serializableProps, propInfos)
@@ -63,8 +75,10 @@ export function ComponentRenderer() {
   if (!Component) return <p>Loading...</p>
 
   return (
-    <ErrorBoundary key={JSON.stringify(serializableProps)}>
-      <Component {...resolvedProps} />
-    </ErrorBoundary>
+    <div id={COMPONENT_ROOT_ID} style={{ display: 'inline-block' }}>
+      <ErrorBoundary key={JSON.stringify(serializableProps)}>
+        <Component {...resolvedProps} />
+      </ErrorBoundary>
+    </div>
   )
 }

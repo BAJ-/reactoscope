@@ -8,24 +8,29 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Camera,
 } from 'react-feather'
 
 interface ScenarioPanelProps {
   scenarios: Scenario[]
   playback: { scenarioId: string; stepIndex: number } | null
+  pdiffRunningId: string | null
   onPlay: (scenarioId: string) => void
   onStepTo: (scenarioId: string, stepIndex: number) => void
   onRename: (id: string, name: string) => void
   onDelete: (id: string) => void
+  onRunPdiff: (scenarioId: string) => void
 }
 
 export function ScenarioPanel({
   scenarios,
   playback,
+  pdiffRunningId,
   onPlay,
   onStepTo,
   onRename,
   onDelete,
+  onRunPdiff,
 }: ScenarioPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -46,6 +51,7 @@ export function ScenarioPanel({
               currentStep={
                 playback?.scenarioId === scenario.id ? playback.stepIndex : null
               }
+              isPdiffRunning={pdiffRunningId === scenario.id}
               onToggleExpand={() =>
                 setExpandedId(isExpanded ? null : scenario.id)
               }
@@ -53,6 +59,7 @@ export function ScenarioPanel({
               onStepTo={(index) => onStepTo(scenario.id, index)}
               onRename={(name) => onRename(scenario.id, name)}
               onDelete={() => onDelete(scenario.id)}
+              onRunPdiff={() => onRunPdiff(scenario.id)}
             />
           )
         })}
@@ -65,20 +72,24 @@ function ScenarioItem({
   scenario,
   isExpanded,
   currentStep,
+  isPdiffRunning,
   onToggleExpand,
   onPlay,
   onStepTo,
   onRename,
   onDelete,
+  onRunPdiff,
 }: {
   scenario: Scenario
   isExpanded: boolean
   currentStep: number | null
+  isPdiffRunning: boolean
   onToggleExpand: () => void
   onPlay: () => void
   onStepTo: (index: number) => void
   onRename: (name: string) => void
   onDelete: () => void
+  onRunPdiff: () => void
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(scenario.name)
@@ -154,6 +165,15 @@ function ScenarioItem({
               aria-label="Play scenario"
             >
               <Play size={14} />
+            </button>
+            <button
+              className="scenario-control-btn"
+              onClick={onRunPdiff}
+              disabled={isPdiffRunning || scenario.steps.length < 2}
+              aria-label="Run pixel diff"
+              title="Run pixel diff"
+            >
+              <Camera size={14} />
             </button>
             <button
               className="scenario-control-btn"

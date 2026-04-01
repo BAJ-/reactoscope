@@ -7,8 +7,10 @@ import { PropsPanel } from './PropsPanel'
 import { ViewportControls } from './ViewportControls'
 import { TimelinePanel } from './TimelinePanel'
 import { ScenarioPanel } from './ScenarioPanel'
+import { PdiffModal } from './PdiffModal'
 import { useTimeline } from './useTimeline'
 import { useScenarios } from './useScenarios'
+import { usePdiff } from './usePdiff'
 import { MSG_PROPS, HMR_SCHEMA_UPDATE, API_SCHEMA } from './constants'
 import './App.css'
 
@@ -58,6 +60,7 @@ function App() {
     deleteScenario,
     selectScenario,
   } = useScenarios()
+  const { pdiffRun, runPdiff, clearPdiff } = usePdiff()
   const [iframeSrc, setIframeSrc] = useState<string | null>(() =>
     componentPath && hasUrlProps
       ? buildIframeSrc(componentPath, urlProps)
@@ -141,7 +144,22 @@ function App() {
 
   const handleDeleteScenario = (id: string) => {
     if (playingScenarioId === id) cancelReplay()
+    if (pdiffRun?.scenarioId === id) clearPdiff()
     deleteScenario(id)
+  }
+
+  const handleRunPdiff = (scenarioId: string) => {
+    const scenario = scenarios.find((s) => s.id === scenarioId)
+    const iframe = iframeRef.current
+    if (scenario && iframe) {
+      runPdiff(scenario, iframe, () => {
+        // Restore the shell's active props after the capture run
+        iframe.contentWindow?.postMessage(
+          { type: MSG_PROPS, props: activeProps },
+          window.location.origin,
+        )
+      })
+    }
   }
 
   const playingScenario = playingScenarioId
@@ -193,10 +211,12 @@ function App() {
           <ScenarioPanel
             scenarios={scenarios}
             playback={scenarioPlayback}
+            pdiffRunningId={pdiffRun?.running ? pdiffRun.scenarioId : null}
             onPlay={playScenario}
             onStepTo={stepToScenario}
             onRename={renameScenario}
             onDelete={handleDeleteScenario}
+            onRunPdiff={handleRunPdiff}
           />
         </aside>
         <main className="observatory-preview">
@@ -224,6 +244,16 @@ function App() {
           </div>
         </main>
       </div>
+      {pdiffRun && (
+        <PdiffModal
+          run={pdiffRun}
+          scenarioName={
+            scenarios.find((s) => s.id === pdiffRun.scenarioId)?.name ??
+            'Scenario'
+          }
+          onClose={clearPdiff}
+        />
+      )}
     </div>
   )
 }
