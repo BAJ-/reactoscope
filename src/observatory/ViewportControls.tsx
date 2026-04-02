@@ -1,3 +1,5 @@
+import { Activity } from 'react-feather'
+
 interface Viewport {
   label: string
   width: number | null
@@ -15,12 +17,16 @@ interface ViewportControlsProps {
   width: number | null
   height: number | null
   onChange: (width: number | null, height: number | null) => void
+  onHealthCheck?: () => void
+  healthCheckRunning?: boolean
 }
 
 export function ViewportControls({
   width,
   height,
   onChange,
+  onHealthCheck,
+  healthCheckRunning,
 }: ViewportControlsProps) {
   return (
     <div className="viewport-controls">
@@ -67,6 +73,24 @@ export function ViewportControls({
           }
         />
       </label>
+      {onHealthCheck && (
+        <>
+          <span className="viewport-separator" />
+          <button
+            className="viewport-btn"
+            onClick={onHealthCheck}
+            disabled={healthCheckRunning}
+          >
+            {healthCheckRunning ? (
+              'Checking…'
+            ) : (
+              <>
+                <Activity size={14} /> Health check
+              </>
+            )}
+          </button>
+        </>
+      )}
     </div>
   )
 }

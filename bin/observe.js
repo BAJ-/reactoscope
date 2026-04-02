@@ -25,12 +25,17 @@ if (rel.startsWith('..')) {
 const viteBin = resolve(projectRoot, 'node_modules/.bin/vite')
 
 // spawn avoids shell injection — no shell is involved
+const existingNodeOptions = process.env.NODE_OPTIONS ?? ''
 const child = spawn(
   viteBin,
   ['--open', `/?component=${encodeURIComponent(rel)}`],
   {
     cwd: projectRoot,
     stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_OPTIONS: `${existingNodeOptions} --expose-gc`.trim(),
+    },
   },
 )
 

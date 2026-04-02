@@ -10,5 +10,8 @@ export const HMR_SCHEMA_UPDATE = 'observatory:schema-update'
 /** Server endpoint for fetching component prop schemas. */
 export const API_SCHEMA = '/api/schema'
 
+/** Server endpoint for stress testing. */
+export const API_STRESS = '/api/stress'
+
 /** ID of the wrapper element around the rendered component in the iframe. */
 export const COMPONENT_ROOT_ID = 'observatory-component-root'

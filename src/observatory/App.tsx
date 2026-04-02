@@ -8,9 +8,11 @@ import { ViewportControls } from './ViewportControls'
 import { TimelinePanel } from './TimelinePanel'
 import { ScenarioPanel } from './ScenarioPanel'
 import { PdiffModal } from './PdiffModal'
+import { StressModal } from './StressModal'
 import { useTimeline } from './useTimeline'
 import { useScenarios } from './useScenarios'
 import { usePdiff } from './usePdiff'
+import { useStress } from './useStress'
 import { MSG_PROPS, HMR_SCHEMA_UPDATE, API_SCHEMA } from './constants'
 import './App.css'
 
@@ -61,6 +63,7 @@ function App() {
     selectScenario,
   } = useScenarios()
   const { pdiffRun, runPdiff, clearPdiff } = usePdiff()
+  const { stressRun, runStress, clearStress } = useStress()
   const [iframeSrc, setIframeSrc] = useState<string | null>(() =>
     componentPath && hasUrlProps
       ? buildIframeSrc(componentPath, urlProps)
@@ -162,6 +165,12 @@ function App() {
     }
   }
 
+  const handleRunStress = () => {
+    if (componentPath) {
+      runStress(componentPath, activeProps)
+    }
+  }
+
   const playingScenario = playingScenarioId
     ? scenarios.find((s) => s.id === playingScenarioId)
     : undefined
@@ -224,6 +233,8 @@ function App() {
             width={viewportWidth}
             height={viewportHeight}
             onChange={handleViewportChange}
+            onHealthCheck={handleRunStress}
+            healthCheckRunning={stressRun?.running}
           />
           <div className="viewport-frame">
             <iframe
@@ -252,6 +263,13 @@ function App() {
             'Scenario'
           }
           onClose={clearPdiff}
+        />
+      )}
+      {stressRun && (
+        <StressModal
+          run={stressRun}
+          onClose={clearStress}
+          onRerun={handleRunStress}
         />
       )}
     </div>

@@ -10,6 +10,7 @@
   --dim: #696159;
   --error: #b0624f;
   --error-bg: rgba(176, 98, 79, 0.12);
+  --warning: #c28a30;
   --positive: #5c9970;
   --active-contrast: rgba(255, 255, 255, 0.6);
   --hover-bg: rgba(0, 0, 0, 0.04);
@@ -780,4 +781,132 @@
 .pdiff-diff-overlay {
   position: absolute;
   inset: 0;
+}
+
+/* ── Stress modal ────────────────────────────── */
+
+.stress-modal {
+  min-width: 400px;
+  max-width: 540px;
+}
+
+.stress-error {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+
+.stress-summary {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.stress-summary.verdict-good {
+  background: rgba(92, 153, 112, 0.1);
+}
+
+.stress-summary.verdict-warn {
+  background: rgba(194, 138, 48, 0.1);
+}
+
+.stress-summary.verdict-bad {
+  background: var(--error-bg);
+}
+
+.stress-summary-detail {
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.stress-props {
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.stress-props summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.stress-props pre {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-raised);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.stress-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stress-finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.stress-finding-msg {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--dim);
+  line-height: 1.4;
+}
+
+.finding-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.finding-icon.finding-pass {
+  color: var(--positive);
+}
+
+.finding-icon.finding-warn {
+  color: var(--warning);
+}
+
+.finding-icon.finding-fail {
+  color: var(--error);
+}
+
+.stress-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.stress-rerun-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: none;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.stress-rerun-btn:hover {
+  background: var(--hover-bg);
 }
