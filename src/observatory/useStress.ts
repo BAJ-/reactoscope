@@ -7,17 +7,21 @@ export interface StressRun {
   running: boolean
   result: StressResult | null
   error: string | null
-  props: SerializableProps
+  props: SerializableProps | null
 }
 
 interface UseStressReturn {
-  stressRun: StressRun | null
+  stressRun: StressRun
   runStress: (componentPath: string, props: SerializableProps) => void
-  clearStress: () => void
 }
 
 export function useStress(): UseStressReturn {
-  const [stressRun, setStressRun] = useState<StressRun | null>(null)
+  const [stressRun, setStressRun] = useState<StressRun>({
+    running: false,
+    result: null,
+    error: null,
+    props: null,
+  })
   const abortRef = useRef<AbortController | null>(null)
 
   const runStress = useCallback(
@@ -48,42 +52,26 @@ export function useStress(): UseStressReturn {
         .then(async (res) => {
           const data = await res.json()
           if (!res.ok) {
-            setStressRun((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    running: false,
-                    error: data.error ?? 'Unknown error',
-                  }
-                : null,
-            )
+            setStressRun((prev) => ({
+              ...prev,
+              running: false,
+              error: data.error ?? 'Unknown error',
+            }))
             return
           }
-          setStressRun((prev) =>
-            prev ? { ...prev, running: false, result: data } : null,
-          )
+          setStressRun((prev) => ({ ...prev, running: false, result: data }))
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === 'AbortError') return
-          setStressRun((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  running: false,
-                  error: err instanceof Error ? err.message : String(err),
-                }
-              : null,
-          )
+          setStressRun((prev) => ({
+            ...prev,
+            running: false,
+            error: err instanceof Error ? err.message : String(err),
+          }))
         })
     },
     [],
   )
 
-  const clearStress = useCallback(() => {
-    abortRef.current?.abort()
-    abortRef.current = null
-    setStressRun(null)
-  }, [])
-
-  return { stressRun, runStress, clearStress }
+  return { stressRun, runStress }
 }

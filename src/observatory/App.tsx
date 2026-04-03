@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import type { PropInfo } from './plugins/schemaPlugin'
 import { generateProps } from './generateProps'
 import { type SerializableProps, readPropsFromUrl } from './resolveProps'
 import { getMarkedSequence } from './timelineTree'
+import { analyzeHealth, worstSeverity } from './analyzeHealth'
 import { PropsPanel } from './PropsPanel'
 import { ViewportControls } from './ViewportControls'
 import { TimelinePanel } from './TimelinePanel'
 import { ScenarioPanel } from './ScenarioPanel'
 import { PdiffModal } from './PdiffModal'
-import { StressModal } from './StressModal'
+import { HealthPanel } from './HealthPanel'
 import { VariantCard } from './VariantCard'
 import { useTimeline } from './useTimeline'
 import { useScenarios } from './useScenarios'
@@ -55,9 +56,11 @@ function App() {
     selectScenario,
   } = useScenarios()
   const { pdiffRun, runPdiff, clearPdiff } = usePdiff()
-  const { stressRun, runStress, clearStress } = useStress()
+  const { stressRun, runStress } = useStress()
   const { variants, pinVariant, unpinVariant } =
     usePinnedVariants(componentPath)
+  const [healthCheckOpen, setHealthCheckOpen] = useState(false)
+  const [autoRunHealthCheck, setAutoRunHealthCheck] = useState(false)
   const [iframeSrc, setIframeSrc] = useState<string | null>(() =>
     componentPath && hasUrlProps
       ? buildIframeSrc(componentPath, urlProps)
@@ -89,12 +92,13 @@ function App() {
       })
   }, [componentPath, urlProps, hasUrlProps, initTimeline])
 
-  // Re-fetch schema when component source changes via HMR
+  // Re-fetch schema on HMR
   useEffect(() => {
     if (!componentPath || !import.meta.hot) return
 
     const path = componentPath
-    function refetchSchema() {
+
+    function onHmr() {
       fetch(`${API_SCHEMA}?component=${encodeURIComponent(path)}`)
         .then((res) => res.json())
         .then((data) => {
@@ -106,9 +110,22 @@ function App() {
         })
     }
 
-    import.meta.hot.on(HMR_SCHEMA_UPDATE, refetchSchema)
-    return () => import.meta.hot!.off(HMR_SCHEMA_UPDATE, refetchSchema)
+    import.meta.hot.on(HMR_SCHEMA_UPDATE, onHmr)
+    return () => import.meta.hot!.off(HMR_SCHEMA_UPDATE, onHmr)
   }, [componentPath, mergeActiveProps, replay])
+
+  // Auto-run health check on changes (props or HMR-induced prop merge), debounced
+  const autoRunTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!autoRunHealthCheck || !healthCheckOpen || !componentPath) return
+    if (autoRunTimerRef.current) clearTimeout(autoRunTimerRef.current)
+    autoRunTimerRef.current = setTimeout(() => {
+      runStress(componentPath, activeProps)
+    }, 500)
+    return () => {
+      if (autoRunTimerRef.current) clearTimeout(autoRunTimerRef.current)
+    }
+  }, [activeProps, autoRunHealthCheck, healthCheckOpen, componentPath, runStress])
 
   // Send props to the iframe whenever they change
   useEffect(() => {
@@ -159,11 +176,20 @@ function App() {
     }
   }
 
-  const handleRunStress = () => {
+  const handleRunStress = useCallback(() => {
     if (componentPath) {
       runStress(componentPath, activeProps)
     }
+  }, [componentPath, activeProps, runStress])
+
+  const handleToggleHealthCheck = () => {
+    setHealthCheckOpen((prev) => !prev)
   }
+
+  const healthCheckSeverity = useMemo(() => {
+    if (!stressRun.result) return null
+    return worstSeverity(analyzeHealth(stressRun.result))
+  }, [stressRun.result])
 
   const handlePinVariant = () => {
     pinVariant(activeProps)
@@ -232,8 +258,9 @@ function App() {
             height={viewportHeight}
             onChange={handleViewportChange}
             onPinVariant={handlePinVariant}
-            onHealthCheck={handleRunStress}
-            healthCheckRunning={stressRun?.running}
+            onToggleHealthCheck={handleToggleHealthCheck}
+            healthCheckRunning={stressRun.running}
+            healthCheckSeverity={healthCheckSeverity}
           />
           <div className="viewport-frame">
             <iframe
@@ -265,6 +292,15 @@ function App() {
             </div>
           )}
         </main>
+        {healthCheckOpen && (
+          <HealthPanel
+            run={stressRun}
+            onClose={() => setHealthCheckOpen(false)}
+            onRun={handleRunStress}
+            autoRun={autoRunHealthCheck}
+            onAutoRunChange={setAutoRunHealthCheck}
+          />
+        )}
       </div>
       {pdiffRun && (
         <PdiffModal
@@ -274,13 +310,6 @@ function App() {
             'Scenario'
           }
           onClose={clearPdiff}
-        />
-      )}
-      {stressRun && (
-        <StressModal
-          run={stressRun}
-          onClose={clearStress}
-          onRerun={handleRunStress}
         />
       )}
     </div>

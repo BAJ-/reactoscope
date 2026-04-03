@@ -1,3 +1,4 @@
+import type { Severity } from './analyzeHealth'
 import { Activity, Copy } from 'react-feather'
 
 interface Viewport {
@@ -18,8 +19,9 @@ interface ViewportControlsProps {
   height: number | null
   onChange: (width: number | null, height: number | null) => void
   onPinVariant?: () => void
-  onHealthCheck?: () => void
+  onToggleHealthCheck?: () => void
   healthCheckRunning?: boolean
+  healthCheckSeverity?: Severity | null
 }
 
 export function ViewportControls({
@@ -27,8 +29,9 @@ export function ViewportControls({
   height,
   onChange,
   onPinVariant,
-  onHealthCheck,
+  onToggleHealthCheck,
   healthCheckRunning,
+  healthCheckSeverity,
 }: ViewportControlsProps) {
   return (
     <div className="viewport-controls">
@@ -83,19 +86,24 @@ export function ViewportControls({
           </button>
         </>
       )}
-      {onHealthCheck && (
+      {onToggleHealthCheck && (
         <>
           <span className="viewport-separator" />
           <button
             className="viewport-btn"
-            onClick={onHealthCheck}
-            disabled={healthCheckRunning}
+            onClick={onToggleHealthCheck}
           >
             {healthCheckRunning ? (
               'Checking…'
             ) : (
               <>
-                <Activity size={14} /> Health check
+                <Activity size={14} />
+                {healthCheckSeverity && (
+                  <span
+                    className={`health-status-dot health-status-${healthCheckSeverity}`}
+                  />
+                )}
+                Health
               </>
             )}
           </button>

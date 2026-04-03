@@ -850,11 +850,31 @@
   inset: 0;
 }
 
-/* ── Stress modal ────────────────────────────── */
+/* ── Health panel (right sidebar) ─────────────── */
 
-.stress-modal {
-  min-width: 400px;
-  max-width: 540px;
+.health-panel {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--surface-raised);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  overflow-y: auto;
+}
+
+.health-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.health-panel-header h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 
 .stress-error {
@@ -868,11 +888,11 @@
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--dim);
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .stress-summary.verdict-good {
@@ -976,4 +996,63 @@
 
 .stress-rerun-btn:hover {
   background: var(--hover-bg);
+}
+
+/* ── Health status dot ───────────────────────── */
+
+.health-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.health-status-pass {
+  background: var(--positive);
+}
+
+.health-status-warn {
+  background: var(--warning);
+}
+
+.health-status-fail {
+  background: var(--error);
+}
+
+/* ── Auto-run toggle ─────────────────────────── */
+
+.stress-auto-run {
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stress-auto-run label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+
+.stress-auto-run input[type='checkbox'] {
+  accent-color: var(--control-bg);
+}
+
+/* ── Idle state ──────────────────────────────── */
+
+.stress-idle {
+  text-align: center;
+  padding: 1.5rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stress-idle p {
+  margin: 0 0 1rem;
+}
+
+.stress-idle .stress-rerun-btn {
+  margin: 0 auto;
 }
