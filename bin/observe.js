@@ -9,7 +9,7 @@ import react from '@vitejs/plugin-react'
 const componentPath = process.argv[2]
 
 if (!componentPath) {
-  console.error('Usage: react-observatory path/to/MyComponent.tsx')
+  console.error('Usage: reactoscope path/to/MyComponent.tsx')
   process.exit(1)
 }
 

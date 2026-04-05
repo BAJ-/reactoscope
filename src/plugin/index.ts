@@ -19,7 +19,7 @@ export interface RootRef {
  *
  * Usage:
  * ```ts
- * import { observatory } from 'react-observatory'
+ * import { observatory } from 'reactoscope'
  * export default defineConfig({
  *   plugins: [react(), ...observatory()]
  * })

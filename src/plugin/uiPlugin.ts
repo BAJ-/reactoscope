@@ -24,7 +24,7 @@ function injectBase(html: string): string {
  * Vite plugin that serves the pre-built Observatory UI from dist/client/.
  *
  * Only activates when the pre-built client directory exists (i.e., when
- * react-observatory is installed as an npm package). During RO development,
+ * reactoscope is installed as an npm package). During RO development,
  * the normal Vite dev server handles the UI directly from source.
  */
 const VIRTUAL_RENDER_ID = 'virtual:observatory-render'

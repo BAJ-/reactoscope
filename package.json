@@ -1,15 +1,15 @@
 {
-  "name": "react-observatory",
+  "name": "reactoscope",
   "version": "0.1.0",
   "type": "module",
-  "description": "A Vite plugin for exploring, testing, and getting AI feedback on React components",
+  "description": "Explore, stress-test, and get AI feedback on your React components",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BAJ-/react-observatory.git"
   },
   "license": "MIT",
   "bin": {
-    "react-observatory": "./bin/observe.js"
+    "reactoscope": "./bin/observe.js"
   },
   "exports": {
     ".": {
@@ -23,11 +23,12 @@
     "src/plugin/stressRender.ts"
   ],
   "keywords": [
-    "vite-plugin",
     "react",
     "component",
-    "observatory",
-    "devtools"
+    "devtools",
+    "vite-plugin",
+    "stress-test",
+    "reactoscope"
   ],
   "engines": {
     "node": ">=22.18.0"
