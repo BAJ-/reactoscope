@@ -23,7 +23,7 @@ function generateValue(prop: PropInfo): unknown {
     case 'enum':
       return prop.enumValues?.[0] ?? ''
     case 'function':
-      return 'noop'
+      return UNSET
     case 'array':
       return []
     case 'object':

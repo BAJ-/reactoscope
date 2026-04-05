@@ -1,5 +1,5 @@
 import type { Severity } from './analyzeHealth'
-import { Activity, Copy } from 'react-feather'
+import { Activity, Copy, Cpu } from 'react-feather'
 
 interface Viewport {
   label: string
@@ -22,6 +22,8 @@ interface ViewportControlsProps {
   onToggleHealthCheck?: () => void
   healthCheckRunning?: boolean
   healthCheckSeverity?: Severity | null
+  onToggleAIPanel?: () => void
+  aiStreaming?: boolean
 }
 
 export function ViewportControls({
@@ -32,6 +34,8 @@ export function ViewportControls({
   onToggleHealthCheck,
   healthCheckRunning,
   healthCheckSeverity,
+  onToggleAIPanel,
+  aiStreaming,
 }: ViewportControlsProps) {
   return (
     <div className="viewport-controls">
@@ -89,10 +93,7 @@ export function ViewportControls({
       {onToggleHealthCheck && (
         <>
           <span className="viewport-separator" />
-          <button
-            className="viewport-btn"
-            onClick={onToggleHealthCheck}
-          >
+          <button className="viewport-btn" onClick={onToggleHealthCheck}>
             {healthCheckRunning ? (
               'Checking…'
             ) : (
@@ -104,6 +105,21 @@ export function ViewportControls({
                   />
                 )}
                 Health
+              </>
+            )}
+          </button>
+        </>
+      )}
+      {onToggleAIPanel && (
+        <>
+          <span className="viewport-separator" />
+          <button className="viewport-btn" onClick={onToggleAIPanel}>
+            {aiStreaming ? (
+              'AI thinking…'
+            ) : (
+              <>
+                <Cpu size={14} />
+                AI
               </>
             )}
           </button>

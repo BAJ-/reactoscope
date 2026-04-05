@@ -13,5 +13,11 @@ export const API_SCHEMA = '/api/schema'
 /** Server endpoint for stress testing. */
 export const API_STRESS = '/api/stress'
 
+/** Server endpoint for listing available AI models. */
+export const API_AI_MODELS = '/api/ai/models'
+
+/** Server endpoint for AI chat (streaming). */
+export const API_AI_CHAT = '/api/ai/chat'
+
 /** ID of the wrapper element around the rendered component in the iframe. */
 export const COMPONENT_ROOT_ID = 'observatory-component-root'

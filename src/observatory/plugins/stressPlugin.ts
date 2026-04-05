@@ -4,6 +4,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { API_STRESS } from '../constants'
 import { computeStats } from '../stressStats'
 import type { StressResult } from '../analyzeHealth'
+import { extractProps } from './schemaPlugin'
+import { hydrateProps } from '../hydrateProps'
 
 interface StressRequest {
   component: string
@@ -124,10 +126,15 @@ async function handleStress(
       '/src/observatory/stressRender.ts',
     )) as { render: (comp: unknown, props: Record<string, unknown>) => string }
 
+    // Hydrate function props so the component receives callable stubs
+    const tsconfigPath = resolve(process.cwd(), 'tsconfig.app.json')
+    const propInfos = extractProps(absPath, tsconfigPath)
+    const hydratedProps = hydrateProps(props, propInfos)
+
     try {
       // Warmup: render without measuring to let JIT settle
       for (let i = 0; i < warmup; i++) {
-        render(Component, props)
+        render(Component, hydratedProps)
       }
 
       runGC()
@@ -141,7 +148,7 @@ async function handleStress(
 
       for (let i = 0; i < iterations; i++) {
         const start = performance.now()
-        const html = render(Component, props)
+        const html = render(Component, hydratedProps)
         timings.push(performance.now() - start)
 
         const len = Buffer.byteLength(html, 'utf8')
@@ -171,7 +178,7 @@ async function handleStress(
 
         for (let r = 0; r < rounds; r++) {
           for (let i = 0; i < rendersPerRound; i++) {
-            render(Component, props)
+            render(Component, hydratedProps)
           }
           runGC()
           heapPerRound.push(process.memoryUsage().heapUsed)

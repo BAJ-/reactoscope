@@ -16,6 +16,8 @@ import { useScenarios } from './useScenarios'
 import { usePdiff } from './usePdiff'
 import { useStress } from './useStress'
 import { usePinnedVariants } from './usePinnedVariants'
+import { useAI } from './useAI'
+import { AIPanel } from './AIPanel'
 import { MSG_PROPS, HMR_SCHEMA_UPDATE, API_SCHEMA } from './constants'
 import { buildIframeSrc } from './buildIframeSrc'
 import './App.css'
@@ -61,6 +63,16 @@ function App() {
     usePinnedVariants(componentPath)
   const [healthCheckOpen, setHealthCheckOpen] = useState(false)
   const [autoRunHealthCheck, setAutoRunHealthCheck] = useState(false)
+  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [autoRunAI, setAutoRunAI] = useState(false)
+  const {
+    state: aiState,
+    selectModel,
+    analyze,
+    sendMessage,
+    stop: stopAI,
+    clearConversation,
+  } = useAI()
   const [iframeSrc, setIframeSrc] = useState<string | null>(() =>
     componentPath && hasUrlProps
       ? buildIframeSrc(componentPath, urlProps)
@@ -125,7 +137,27 @@ function App() {
     return () => {
       if (autoRunTimerRef.current) clearTimeout(autoRunTimerRef.current)
     }
-  }, [activeProps, autoRunHealthCheck, healthCheckOpen, componentPath, runStress])
+  }, [
+    activeProps,
+    autoRunHealthCheck,
+    healthCheckOpen,
+    componentPath,
+    runStress,
+  ])
+
+  // Auto-run AI analysis on prop changes, debounced
+  const autoRunAITimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!autoRunAI || !aiPanelOpen || !componentPath) return
+    if (autoRunAITimerRef.current) clearTimeout(autoRunAITimerRef.current)
+    autoRunAITimerRef.current = setTimeout(() => {
+      analyze(componentPath, propInfos, activeProps, stressRun.result)
+    }, 1000)
+    return () => {
+      if (autoRunAITimerRef.current) clearTimeout(autoRunAITimerRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProps, autoRunAI, aiPanelOpen, componentPath, propInfos, analyze])
 
   // Send props to the iframe whenever they change
   useEffect(() => {
@@ -185,6 +217,16 @@ function App() {
   const handleToggleHealthCheck = () => {
     setHealthCheckOpen((prev) => !prev)
   }
+
+  const handleToggleAIPanel = () => {
+    setAiPanelOpen((prev) => !prev)
+  }
+
+  const handleAnalyze = useCallback(() => {
+    if (componentPath) {
+      analyze(componentPath, propInfos, activeProps, stressRun.result)
+    }
+  }, [componentPath, propInfos, activeProps, stressRun.result, analyze])
 
   const healthCheckSeverity = useMemo(() => {
     if (!stressRun.result) return null
@@ -261,6 +303,8 @@ function App() {
             onToggleHealthCheck={handleToggleHealthCheck}
             healthCheckRunning={stressRun.running}
             healthCheckSeverity={healthCheckSeverity}
+            onToggleAIPanel={handleToggleAIPanel}
+            aiStreaming={aiState.streaming}
           />
           <div className="viewport-frame">
             <iframe
@@ -290,6 +334,19 @@ function App() {
                 />
               ))}
             </div>
+          )}
+          {aiPanelOpen && (
+            <AIPanel
+              state={aiState}
+              onClose={() => setAiPanelOpen(false)}
+              onSelectModel={selectModel}
+              onAnalyze={handleAnalyze}
+              onSendMessage={sendMessage}
+              onStop={stopAI}
+              onClear={clearConversation}
+              autoRun={autoRunAI}
+              onAutoRunChange={setAutoRunAI}
+            />
           )}
         </main>
         {healthCheckOpen && (

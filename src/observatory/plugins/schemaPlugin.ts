@@ -16,9 +16,16 @@ export interface PropInfo {
     | 'unknown'
   required: boolean
   enumValues?: string[]
+  /** Full TypeScript signature for function props, e.g. "(n: number) => string" */
+  signature?: string
+  /** Serializable default return value for function props, derived from the return type */
+  returnDefault?: unknown
 }
 
-function extractProps(filePath: string, tsconfigPath: string): PropInfo[] {
+export function extractProps(
+  filePath: string,
+  tsconfigPath: string,
+): PropInfo[] {
   const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
   const parsedConfig = ts.parseJsonConfigFileContent(
     configFile.config,
@@ -78,6 +85,99 @@ function hasExportModifier(node: ts.Node): boolean {
   return modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
 }
 
+/**
+ * Produce a serializable default value for a TypeScript type.
+ * Returns plain values for primitives/plain objects, and hydrate
+ * descriptors (tagged objects with `__hydrate`) for types that
+ * can't be represented as plain JSON (Promise, Date, Map, etc.).
+ */
+function defaultForType(
+  t: ts.Type,
+  checker: ts.TypeChecker,
+  depth = 0,
+): unknown {
+  if (depth > 4) return null // prevent infinite recursion on deep/recursive types
+
+  if (t.flags & ts.TypeFlags.Void || t.flags & ts.TypeFlags.Undefined)
+    return undefined
+  if (t.flags & ts.TypeFlags.Null) return null
+  if (t.flags & ts.TypeFlags.String) return ''
+  if (t.isStringLiteral()) return t.value
+  if (t.flags & ts.TypeFlags.Number) return 0
+  if (t.isNumberLiteral()) return t.value
+  if (t.flags & ts.TypeFlags.Boolean || t.flags & ts.TypeFlags.BooleanLiteral)
+    return false
+
+  // Union — pick the first non-undefined/null type
+  if (t.isUnion()) {
+    const concrete = t.types.find(
+      (u) => !(u.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)),
+    )
+    return concrete ? defaultForType(concrete, checker, depth) : null
+  }
+
+  // Function types (callback-returning-callback)
+  if (t.getCallSignatures().length > 0) {
+    const sig = t.getCallSignatures()[0]
+    const retType = checker.getReturnTypeOfSignature(sig)
+    return {
+      __hydrate: 'Function',
+      returnDefault: defaultForType(retType, checker, depth + 1),
+    }
+  }
+
+  if (checker.isArrayType(t)) {
+    // Tuples: produce per-element typed defaults
+    const objectFlags = (t as ts.ObjectType).objectFlags ?? 0
+    if (objectFlags & ts.ObjectFlags.Tuple) {
+      const typeArgs = checker.getTypeArguments(t as ts.TypeReference)
+      return typeArgs.map((arg) => defaultForType(arg, checker, depth + 1))
+    }
+    return []
+  }
+
+  // Object types — check for known non-plain types before generic fallback
+  if (t.flags & ts.TypeFlags.Object) {
+    const name = t.symbol?.name
+
+    // Promise<T> → descriptor with resolved inner value
+    if (name === 'Promise') {
+      const typeArgs = checker.getTypeArguments(t as ts.TypeReference)
+      const inner =
+        typeArgs.length > 0
+          ? defaultForType(typeArgs[0], checker, depth + 1)
+          : undefined
+      return { __hydrate: 'Promise', value: inner }
+    }
+
+    // Built-in non-plain types → descriptors
+    if (name === 'Date') return { __hydrate: 'Date' }
+    if (name === 'Map') return { __hydrate: 'Map' }
+    if (name === 'Set') return { __hydrate: 'Set' }
+    if (name === 'RegExp') return { __hydrate: 'RegExp' }
+
+    // React elements → null is a valid React child everywhere
+    if (name === 'Element' || name === 'ReactElement' || name === 'ReactNode') {
+      return null
+    }
+
+    // Types with construct signatures are class instances — can't safely synthesize
+    if (t.getConstructSignatures?.().length) return null
+
+    // Plain object types — recursively build defaults for each property
+    const props = t.getProperties()
+    if (props.length === 0) return {}
+    const obj: Record<string, unknown> = {}
+    for (const prop of props) {
+      const propType = checker.getTypeOfSymbol(prop)
+      obj[prop.name] = defaultForType(propType, checker, depth + 1)
+    }
+    return obj
+  }
+
+  return null
+}
+
 function symbolToPropInfo(
   symbol: ts.Symbol,
   checker: ts.TypeChecker,
@@ -91,7 +191,17 @@ function symbolToPropInfo(
   const type = rawType.isUnion() ? checker.getNonNullableType(rawType) : rawType
 
   if (type.getCallSignatures().length > 0) {
-    return { name: symbol.name, type: 'function', required }
+    const signature = checker.typeToString(type)
+    const callSig = type.getCallSignatures()[0]
+    const returnType = checker.getReturnTypeOfSignature(callSig)
+    const returnDefault = defaultForType(returnType, checker)
+    return {
+      name: symbol.name,
+      type: 'function',
+      required,
+      signature,
+      returnDefault,
+    }
   }
 
   if (type.isUnion()) {

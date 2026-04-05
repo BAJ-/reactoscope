@@ -1,5 +1,6 @@
 import type { PropInfo } from './plugins/schemaPlugin'
 import { UNSET } from './generateProps'
+import { hydrateValue } from './hydrateDescriptor'
 
 type FunctionBehavior = 'noop' | 'log'
 
@@ -12,6 +13,27 @@ const functionBehaviors: Record<
     (propName) =>
     (...args) =>
       console.log(`[${propName}]`, ...args),
+}
+
+/**
+ * Build a callable function stub from a PropInfo's returnDefault.
+ * Calls hydrateValue on each invocation so mutable types (Map, Date, etc.)
+ * get a fresh instance per call.
+ */
+function buildFunctionStub(
+  prop: PropInfo,
+  behavior: FunctionBehavior,
+): (...args: unknown[]) => unknown {
+  const base =
+    functionBehaviors[behavior]?.(prop.name) ??
+    functionBehaviors.noop(prop.name)
+  if (prop.returnDefault === undefined || prop.returnDefault === null) {
+    return base
+  }
+  return (...args: unknown[]) => {
+    base(...args)
+    return hydrateValue(prop.returnDefault)
+  }
 }
 
 export type SerializableProps = Record<string, unknown>
@@ -38,11 +60,19 @@ export function resolveProps(
     const prop = props.find((p) => p.name === key)
 
     if (prop?.type === 'function') {
-      const behavior = (value as FunctionBehavior) ?? 'noop'
-      resolved[key] =
-        functionBehaviors[behavior]?.(key) ?? functionBehaviors.noop(key)
+      const behavior = (
+        typeof value === 'string' && value in functionBehaviors ? value : 'noop'
+      ) as FunctionBehavior
+      resolved[key] = buildFunctionStub(prop, behavior)
     } else {
       resolved[key] = value
+    }
+  }
+
+  // Ensure all required function props get a stub even if not in serializable
+  for (const prop of props) {
+    if (prop.type === 'function' && !(prop.name in resolved)) {
+      resolved[prop.name] = buildFunctionStub(prop, 'noop')
     }
   }
 
