@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { usePinnedVariants } from './usePinnedVariants'
 
-const COMPONENT = 'src/sandbox/TestButton.tsx'
+const COMPONENT = 'src/components/TestButton.tsx'
 const storageKey = `observatory:pinned:${COMPONENT}`
 
 beforeEach(() => {
