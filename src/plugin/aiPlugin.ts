@@ -3,8 +3,8 @@ import { resolve, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { API_AI_MODELS, API_AI_CHAT } from '../shared/constants'
+import type { RootRef } from './index'
 
-const OLLAMA_BASE = 'http://localhost:11434'
 const MAX_BODY_BYTES = 1_048_576 // 1 MB
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -38,9 +38,10 @@ function jsonResponse(
 async function handleModels(
   _req: IncomingMessage,
   res: ServerResponse,
+  ollamaUrl: string,
 ): Promise<void> {
   try {
-    const response = await fetch(`${OLLAMA_BASE}/api/tags`)
+    const response = await fetch(`${ollamaUrl}/api/tags`)
     if (!response.ok) {
       jsonResponse(res, 502, { error: 'Failed to reach Ollama' })
       return
@@ -55,7 +56,7 @@ async function handleModels(
     jsonResponse(res, 200, { models })
   } catch {
     jsonResponse(res, 502, {
-      error: 'Ollama is not running at ' + OLLAMA_BASE,
+      error: 'Ollama is not running at ' + ollamaUrl,
     })
   }
 }
@@ -66,9 +67,12 @@ interface ChatRequest {
   component?: string
 }
 
-function readComponentSource(componentPath: string): string | null {
-  const absPath = resolve(process.cwd(), componentPath)
-  const rel = relative(process.cwd(), absPath)
+function readComponentSource(
+  componentPath: string,
+  root: string,
+): string | null {
+  const absPath = resolve(root, componentPath)
+  const rel = relative(root, absPath)
   if (rel.startsWith('..')) return null
   try {
     return readFileSync(absPath, 'utf-8')
@@ -80,6 +84,8 @@ function readComponentSource(componentPath: string): string | null {
 async function handleChat(
   req: IncomingMessage,
   res: ServerResponse,
+  ollamaUrl: string,
+  rootRef: RootRef,
 ): Promise<void> {
   if (req.method !== 'POST') {
     jsonResponse(res, 405, { error: 'Method not allowed' })
@@ -109,7 +115,7 @@ async function handleChat(
   // If component path is provided, read source and inject as system context
   const messages = [...params.messages]
   if (params.component) {
-    const source = readComponentSource(params.component)
+    const source = readComponentSource(params.component, rootRef.root)
     if (source) {
       const systemMsg = messages.find((m) => m.role === 'system')
       const sourceBlock = `\n\nComponent source code:\n\`\`\`tsx\n${source}\n\`\`\``
@@ -122,7 +128,7 @@ async function handleChat(
   }
 
   try {
-    const response = await fetch(`${OLLAMA_BASE}/api/chat`, {
+    const response = await fetch(`${ollamaUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -171,25 +177,25 @@ async function handleChat(
   } catch {
     if (!res.headersSent) {
       jsonResponse(res, 502, {
-        error: 'Ollama is not running at ' + OLLAMA_BASE,
+        error: 'Ollama is not running at ' + ollamaUrl,
       })
     }
   }
 }
 
-export function aiPlugin(): Plugin {
+export function aiPlugin(ollamaUrl: string, rootRef: RootRef): Plugin {
   return {
     name: 'observatory-ai',
     configureServer(server) {
       server.middlewares.use(API_AI_MODELS, (req, res) => {
-        handleModels(req, res).catch((err) => {
+        handleModels(req, res, ollamaUrl).catch((err) => {
           if (!res.headersSent) {
             jsonResponse(res, 500, { error: String(err) })
           }
         })
       })
       server.middlewares.use(API_AI_CHAT, (req, res) => {
-        handleChat(req, res).catch((err) => {
+        handleChat(req, res, ollamaUrl, rootRef).catch((err) => {
           if (!res.headersSent) {
             jsonResponse(res, 500, { error: String(err) })
           }

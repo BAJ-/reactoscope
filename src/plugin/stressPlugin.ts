@@ -6,6 +6,8 @@ import { computeStats } from '../shared/stressStats'
 import type { StressResult } from '../shared/analyzeHealth'
 import { extractProps } from './schemaPlugin'
 import { hydrateProps } from './hydrateProps'
+import { findTsconfig } from './findTsconfig'
+import type { RootRef } from './index'
 
 interface StressRequest {
   component: string
@@ -51,6 +53,7 @@ async function handleStress(
   req: IncomingMessage,
   res: ServerResponse,
   server: ViteDevServer,
+  rootRef: RootRef,
 ): Promise<void> {
   if (req.method !== 'POST') {
     res.writeHead(405, { 'Content-Type': 'application/json' })
@@ -101,8 +104,8 @@ async function handleStress(
     return
   }
 
-  const absPath = resolve(process.cwd(), component)
-  const rel = relative(process.cwd(), absPath)
+  const absPath = resolve(rootRef.root, component)
+  const rel = relative(rootRef.root, absPath)
   if (rel.startsWith('..')) {
     res.writeHead(403, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'Path outside project root' }))
@@ -123,11 +126,11 @@ async function handleStress(
     // Load the rendering helper via SSR so React is resolved through
     // Vite's normal externalization (avoids CJS/ESM mismatch).
     const { render } = (await server.ssrLoadModule(
-      '/src/observatory/stressRender.ts',
+      '/src/plugin/stressRender.ts',
     )) as { render: (comp: unknown, props: Record<string, unknown>) => string }
 
     // Hydrate function props so the component receives callable stubs
-    const tsconfigPath = resolve(process.cwd(), 'tsconfig.app.json')
+    const tsconfigPath = findTsconfig(rootRef.root)
     const propInfos = extractProps(absPath, tsconfigPath)
     const hydratedProps = hydrateProps(props, propInfos)
 
@@ -212,12 +215,12 @@ async function handleStress(
   }
 }
 
-export function stressPlugin(): Plugin {
+export function stressPlugin(rootRef: RootRef): Plugin {
   return {
     name: 'observatory-stress',
     configureServer(server) {
       server.middlewares.use(API_STRESS, (req, res) => {
-        handleStress(req, res, server).catch((err) => {
+        handleStress(req, res, server, rootRef).catch((err) => {
           if (!res.headersSent) {
             res.writeHead(500, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify({ error: String(err) }))

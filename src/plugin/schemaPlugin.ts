@@ -3,6 +3,8 @@ import { resolve } from 'node:path'
 import type { Plugin } from 'vite'
 import { API_SCHEMA, HMR_SCHEMA_UPDATE } from '../shared/constants'
 import type { PropInfo } from '../shared/types'
+import { findTsconfig } from './findTsconfig'
+import type { RootRef } from './index'
 
 export type { PropInfo }
 
@@ -223,7 +225,7 @@ function symbolToPropInfo(
   return { name: symbol.name, type: 'unknown', required }
 }
 
-export function schemaPlugin(): Plugin {
+export function schemaPlugin(rootRef: RootRef): Plugin {
   return {
     name: 'observatory-schema',
     configureServer(server) {
@@ -237,17 +239,18 @@ export function schemaPlugin(): Plugin {
           return
         }
 
-        const absPath = resolve(process.cwd(), componentPath)
+        const root = rootRef.root
+        const absPath = resolve(root, componentPath)
 
         // Verify the file is inside the project root
-        if (!absPath.startsWith(process.cwd())) {
+        if (!absPath.startsWith(root)) {
           res.writeHead(403, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify({ error: 'Path outside project root' }))
           return
         }
 
         try {
-          const tsconfigPath = resolve(process.cwd(), 'tsconfig.app.json')
+          const tsconfigPath = findTsconfig(root)
           const props = extractProps(absPath, tsconfigPath)
 
           res.writeHead(200, { 'Content-Type': 'application/json' })
