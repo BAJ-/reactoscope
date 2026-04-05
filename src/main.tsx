@@ -7,8 +7,7 @@ async function mount() {
   const root = createRoot(document.getElementById('root')!)
 
   if (isRenderMode) {
-    const { ComponentRenderer } =
-      await import('./ui/ComponentRenderer.tsx')
+    const { ComponentRenderer } = await import('./ui/ComponentRenderer.tsx')
     root.render(
       <StrictMode>
         <ComponentRenderer />
