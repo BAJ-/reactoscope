@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { SerializableProps } from './resolveProps'
-import { UNSET } from './generateProps'
+import { UNSET } from '../shared/constants'
 
 export interface PinnedVariant {
   id: string

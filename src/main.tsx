@@ -8,14 +8,14 @@ async function mount() {
 
   if (isRenderMode) {
     const { ComponentRenderer } =
-      await import('./observatory/ComponentRenderer.tsx')
+      await import('./ui/ComponentRenderer.tsx')
     root.render(
       <StrictMode>
         <ComponentRenderer />
       </StrictMode>,
     )
   } else {
-    const { default: App } = await import('./observatory/App.tsx')
+    const { default: App } = await import('./ui/App.tsx')
     root.render(
       <StrictMode>
         <App />

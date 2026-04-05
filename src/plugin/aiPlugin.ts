@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { API_AI_MODELS, API_AI_CHAT } from '../constants'
+import { API_AI_MODELS, API_AI_CHAT } from '../shared/constants'
 
 const OLLAMA_BASE = 'http://localhost:11434'
 const MAX_BODY_BYTES = 1_048_576 // 1 MB

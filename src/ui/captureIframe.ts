@@ -1,5 +1,5 @@
 import html2canvas from 'html2canvas-pro'
-import { COMPONENT_ROOT_ID } from './constants'
+import { COMPONENT_ROOT_ID } from '../shared/constants'
 
 /**
  * Capture the rendered component inside a same-origin iframe as ImageData.

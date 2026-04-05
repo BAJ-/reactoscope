@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { StressRun } from './useStress'
-import { analyzeHealth, worstSeverity, type Finding } from './analyzeHealth'
+import { analyzeHealth, worstSeverity, type Finding } from '../shared/analyzeHealth'
 import {
   X,
   RefreshCw,

@@ -1,4 +1,4 @@
-import type { Severity } from './analyzeHealth'
+import type { Severity } from '../shared/analyzeHealth'
 import { Activity, Copy, Cpu } from 'react-feather'
 
 interface Viewport {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { PropInfo } from './plugins/schemaPlugin'
+import type { PropInfo } from '../shared/types'
 import {
   resolveProps,
   type SerializableProps,
@@ -11,7 +11,7 @@ import {
   MSG_RENDERED,
   API_SCHEMA,
   COMPONENT_ROOT_ID,
-} from './constants'
+} from '../shared/constants'
 
 export function ComponentRenderer() {
   const params = new URLSearchParams(window.location.search)

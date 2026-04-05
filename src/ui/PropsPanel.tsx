@@ -1,5 +1,5 @@
-import type { PropInfo } from './plugins/schemaPlugin'
-import { UNSET } from './generateProps'
+import type { PropInfo } from '../shared/types'
+import { UNSET } from '../shared/constants'
 import { functionBehaviorOptions, type SerializableProps } from './resolveProps'
 
 interface PropsPanelProps {

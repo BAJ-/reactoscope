@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Scenario } from './useScenarios'
 import { compareSnapshots } from './pdiff'
 import { captureIframe } from './captureIframe'
-import { MSG_PROPS, MSG_RENDERED } from './constants'
+import { MSG_PROPS, MSG_RENDERED } from '../shared/constants'
 
 export interface StepPairDiff {
   beforeUrl: string

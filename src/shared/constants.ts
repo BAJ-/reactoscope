@@ -21,3 +21,6 @@ export const API_AI_CHAT = '/api/ai/chat'
 
 /** ID of the wrapper element around the rendered component in the iframe. */
 export const COMPONENT_ROOT_ID = 'observatory-component-root'
+
+/** Sentinel value for unset props. */
+export const UNSET = '__unset__' as const

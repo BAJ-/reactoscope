@@ -1,11 +1,11 @@
 import { resolve, relative } from 'node:path'
 import type { Plugin, ViteDevServer } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { API_STRESS } from '../constants'
-import { computeStats } from '../stressStats'
-import type { StressResult } from '../analyzeHealth'
+import { API_STRESS } from '../shared/constants'
+import { computeStats } from '../shared/stressStats'
+import type { StressResult } from '../shared/analyzeHealth'
 import { extractProps } from './schemaPlugin'
-import { hydrateProps } from '../hydrateProps'
+import { hydrateProps } from './hydrateProps'
 
 interface StressRequest {
   component: string

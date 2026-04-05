@@ -1,6 +1,5 @@
-import type { PropInfo } from './plugins/schemaPlugin'
-
-export const UNSET = '__unset__' as const
+import type { PropInfo } from '../shared/types'
+import { UNSET } from '../shared/constants'
 
 export function generateProps(props: PropInfo[]): Record<string, unknown> {
   const result: Record<string, unknown> = {}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import type { PropInfo } from './plugins/schemaPlugin'
+import type { PropInfo } from '../shared/types'
 import { hydrateProps } from './hydrateProps'
-import { UNSET } from './generateProps'
+import { UNSET } from '../shared/constants'
 
 function makeProp(overrides: Partial<PropInfo> & { name: string }): PropInfo {
   return { type: 'string', required: true, ...overrides }

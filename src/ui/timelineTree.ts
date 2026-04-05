@@ -1,5 +1,5 @@
 import type { SerializableProps } from './resolveProps'
-import { UNSET } from './generateProps'
+import { UNSET } from '../shared/constants'
 
 export function getNodeLabel(
   node: TimelineNode,

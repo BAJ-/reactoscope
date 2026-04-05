@@ -1,6 +1,6 @@
-import type { PropInfo } from './plugins/schemaPlugin'
-import { UNSET } from './generateProps'
-import { hydrateValue } from './hydrateDescriptor'
+import type { PropInfo } from '../shared/types'
+import { UNSET } from '../shared/constants'
+import { hydrateValue } from '../shared/hydrateDescriptor'
 
 type FunctionBehavior = 'noop' | 'log'
 
