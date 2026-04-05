@@ -19,8 +19,7 @@
   },
   "files": [
     "dist/",
-    "bin/",
-    "src/plugin/stressRender.ts"
+    "bin/"
   ],
   "keywords": [
     "react",
@@ -43,7 +42,6 @@
     "build:plugin": "tsdown",
     "build:ui": "vite build --config vite.config.ui.ts",
     "build:render": "vite build --config vite.config.render.ts",
-    "prepare": "npm run build",
     "prepack": "npm run build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",

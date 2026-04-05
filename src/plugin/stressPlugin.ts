@@ -129,11 +129,11 @@ async function handleStress(
     // Vite's normal externalization (avoids CJS/ESM mismatch).
     const selfDir = dirname(fileURLToPath(import.meta.url))
     // In dev: selfDir is src/plugin/, stressRender.ts is a sibling.
-    // As npm package: selfDir is dist/, stressRender.ts is at ../src/plugin/.
+    // As npm package: selfDir is dist/, stressRender.mjs is a sibling.
     const localPath = resolve(selfDir, 'stressRender.ts')
     const stressRenderPath = existsSync(localPath)
       ? localPath
-      : resolve(selfDir, '..', 'src', 'plugin', 'stressRender.ts')
+      : resolve(selfDir, 'stressRender.mjs')
     const { render } = (await server.ssrLoadModule(stressRenderPath)) as {
       render: (comp: unknown, props: Record<string, unknown>) => string
     }
