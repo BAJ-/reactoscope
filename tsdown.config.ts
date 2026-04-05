@@ -7,6 +7,5 @@ export default defineConfig({
   platform: 'node',
   target: 'node20',
   dts: { build: true },
-  clean: true,
   external: ['typescript', 'vite'],
 })

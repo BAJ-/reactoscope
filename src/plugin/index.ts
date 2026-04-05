@@ -2,6 +2,7 @@ import type { Plugin } from 'vite'
 import { schemaPlugin } from './schemaPlugin'
 import { stressPlugin } from './stressPlugin'
 import { aiPlugin } from './aiPlugin'
+import { uiPlugin } from './uiPlugin'
 
 export interface ObservatoryOptions {
   /** Ollama API base URL (default: "http://localhost:11434") */
@@ -21,7 +22,7 @@ export interface ObservatoryOptions {
  */
 export function observatory(options?: ObservatoryOptions): Plugin[] {
   void options // wired in Step 7
-  return [schemaPlugin(), stressPlugin(), aiPlugin()]
+  return [uiPlugin(), schemaPlugin(), stressPlugin(), aiPlugin()]
 }
 
 export type { PropInfo } from '../shared/types'
