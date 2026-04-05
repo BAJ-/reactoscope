@@ -1,13 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
-import { schemaPlugin } from './src/plugin/schemaPlugin'
-import { stressPlugin } from './src/plugin/stressPlugin'
-import { aiPlugin } from './src/plugin/aiPlugin'
+import { observatory } from './src/plugin'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), schemaPlugin(), stressPlugin(), aiPlugin()],
+  plugins: [react(), ...observatory()],
   test: {
     environment: 'jsdom',
     globals: true,
