@@ -10,5 +10,5 @@ export default defineConfig({
   platform: 'node',
   target: 'node20',
   dts: { build: true },
-  external: ['typescript', 'vite'],
+  external: ['typescript', 'vite', 'react', 'react-dom'],
 })
