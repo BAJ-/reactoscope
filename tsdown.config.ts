@@ -10,5 +10,7 @@ export default defineConfig({
   platform: 'node',
   target: 'node20',
   dts: { build: true },
-  external: ['typescript', 'vite', 'react', 'react-dom'],
+  deps: {
+    neverBundle: ['typescript', 'vite', 'react', 'react-dom'],
+  },
 })
