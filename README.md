@@ -1,5 +1,10 @@
 # Reactoscope
 
+![npm version](https://img.shields.io/npm/v/reactoscope?color=77DD77)
+![License: MIT](https://img.shields.io/badge/License-MIT-8BC6FC.svg)
+![CI](https://github.com/BAJ-/reactoscope/actions/workflows/ci.yml/badge.svg)
+![Publish](https://github.com/BAJ-/reactoscope/actions/workflows/publish.yml/badge.svg)
+
 Explore, stress-test, and get AI feedback on your React components — without writing a single test or storybook file.
 
 ## Features
