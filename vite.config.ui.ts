@@ -30,7 +30,7 @@ export default defineConfig({
         'react-dom/client',
       ],
       output: {
-        inlineDynamicImports: true,
+        codeSplitting: false,
       },
     },
   },
