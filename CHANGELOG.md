@@ -12,6 +12,8 @@
 
 - Replaced deprecated `external` option with `deps.neverBundle` in tsdown config.
 - Replaced deprecated `inlineDynamicImports` with `codeSplitting: false` in Vite UI build config.
+- Derived `__dirname` from `import.meta.url` for ESM compatibility in Vite config.
+- Shared `@/` resolve aliases across all Vite configs so production builds resolve the same paths as dev.
 
 ### Internal
 

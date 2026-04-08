@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { aliases } from './vite.aliases'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: aliases,
+  },
   build: {
     outDir: 'dist/render',
     emptyOutDir: true,

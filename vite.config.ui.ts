@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { aliases } from './vite.aliases'
 
 /**
  * Build config for the Observatory UI.
@@ -13,6 +14,9 @@ export default defineConfig({
   root: '.',
   base: './',
   plugins: [react()],
+  resolve: {
+    alias: aliases,
+  },
   build: {
     outDir: 'dist/client',
     emptyOutDir: true,
