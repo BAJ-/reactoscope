@@ -14,11 +14,14 @@
 - Replaced deprecated `inlineDynamicImports` with `codeSplitting: false` in Vite UI build config.
 - Derived `__dirname` from `import.meta.url` for ESM compatibility in Vite config.
 - Shared `@/` resolve aliases across all Vite configs so production builds resolve the same paths as dev.
+- Removed deprecated `baseUrl` from tsconfig for TypeScript 6 compatibility.
 
 ### Internal
 
 - Reorganized `src/ui/` into `components/`, `hooks/`, and `lib/` subdirectories.
 - Switched all internal imports to absolute paths using `@/` alias.
+- Added build check to CI workflow.
+- Added Dependabot configuration for automated dependency updates.
 
 ## [0.1.0] - 2026-04-06
 
