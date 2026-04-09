@@ -7,13 +7,12 @@
     "module": "ESNext",
     "types": ["vite/client"],
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "@/components/*": ["src/ui/components/*"],
-      "@/hooks/*": ["src/ui/hooks/*"],
-      "@/shared/*": ["src/shared/*"],
-      "@/lib/*": ["src/ui/lib/*"],
-      "@/ui/*": ["src/ui/*"]
+      "@/components/*": ["./src/ui/components/*"],
+      "@/hooks/*": ["./src/ui/hooks/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/lib/*": ["./src/ui/lib/*"],
+      "@/ui/*": ["./src/ui/*"]
     },
 
     /* Bundler mode */
