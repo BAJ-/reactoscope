@@ -24,6 +24,7 @@
 - Switched all internal imports to absolute paths using `@/` alias.
 - Added build check to CI workflow.
 - Added Dependabot configuration for automated dependency updates.
+- Fixed publish workflow for OIDC trusted publishing (Node 24, automatic provenance).
 
 ## [0.1.0] - 2026-04-06
 
