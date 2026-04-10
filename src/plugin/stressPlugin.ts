@@ -9,6 +9,7 @@ import type { StressResult } from '../shared/analyzeHealth'
 import { extractProps } from './schemaPlugin'
 import { hydrateProps } from './hydrateProps'
 import { findTsconfig } from './findTsconfig'
+import { readBody, jsonResponse } from './httpUtils'
 import type { RootRef } from './index'
 
 interface StressRequest {
@@ -30,27 +31,6 @@ function runGC(): void {
   }
 }
 
-const MAX_BODY_BYTES = 1_048_576 // 1 MB
-
-function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let body = ''
-    let bytes = 0
-    req.on('data', (chunk: Buffer | string) => {
-      bytes +=
-        typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length
-      if (bytes > MAX_BODY_BYTES) {
-        req.destroy()
-        reject(new Error('Request body too large'))
-        return
-      }
-      body += chunk
-    })
-    req.on('end', () => resolve(body))
-    req.on('error', reject)
-  })
-}
-
 async function handleStress(
   req: IncomingMessage,
   res: ServerResponse,
@@ -58,8 +38,7 @@ async function handleStress(
   rootRef: RootRef,
 ): Promise<void> {
   if (req.method !== 'POST') {
-    res.writeHead(405, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Method not allowed' }))
+    jsonResponse(res, 405, { error: 'Method not allowed' })
     return
   }
 
@@ -68,8 +47,7 @@ async function handleStress(
   try {
     params = JSON.parse(raw)
   } catch {
-    res.writeHead(400, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Invalid JSON body' }))
+    jsonResponse(res, 400, { error: 'Invalid JSON body' })
     return
   }
 
@@ -82,35 +60,29 @@ async function handleStress(
     Array.isArray(props) ||
     typeof iterations !== 'number'
   ) {
-    res.writeHead(400, { 'Content-Type': 'application/json' })
-    res.end(
-      JSON.stringify({
-        error:
-          'Required: component (string), props (object), iterations (number)',
-      }),
-    )
+    jsonResponse(res, 400, {
+      error:
+        'Required: component (string), props (object), iterations (number)',
+    })
     return
   }
 
   if (iterations < 1 || iterations > 10_000) {
-    res.writeHead(400, { 'Content-Type': 'application/json' })
-    res.end(
-      JSON.stringify({ error: 'iterations must be between 1 and 10,000' }),
-    )
+    jsonResponse(res, 400, {
+      error: 'iterations must be between 1 and 10,000',
+    })
     return
   }
 
   if (warmup < 0 || warmup > 1000) {
-    res.writeHead(400, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'warmup must be between 0 and 1,000' }))
+    jsonResponse(res, 400, { error: 'warmup must be between 0 and 1,000' })
     return
   }
 
   const absPath = resolve(rootRef.root, component)
   const rel = relative(rootRef.root, absPath)
   if (rel.startsWith('..') || isAbsolute(rel)) {
-    res.writeHead(403, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Path outside project root' }))
+    jsonResponse(res, 403, { error: 'Path outside project root' })
     return
   }
 
@@ -120,8 +92,7 @@ async function handleStress(
       mod.default ?? Object.values(mod).find((v) => typeof v === 'function')
 
     if (typeof Component !== 'function') {
-      res.writeHead(400, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: 'No component export found' }))
+      jsonResponse(res, 400, { error: 'No component export found' })
       return
     }
 
@@ -210,17 +181,14 @@ async function handleStress(
         rendersPerRound,
       }
 
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify(result))
+      jsonResponse(res, 200, result)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      res.writeHead(500, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ error: message }))
+      jsonResponse(res, 500, { error: message })
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    res.writeHead(500, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: message }))
+    jsonResponse(res, 500, { error: message })
   }
 }
 
@@ -231,8 +199,7 @@ export function stressPlugin(rootRef: RootRef): Plugin {
       server.middlewares.use(API_STRESS, (req, res) => {
         handleStress(req, res, server, rootRef).catch((err) => {
           if (!res.headersSent) {
-            res.writeHead(500, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({ error: String(err) }))
+            jsonResponse(res, 500, { error: String(err) })
           }
         })
       })

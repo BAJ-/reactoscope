@@ -3,37 +3,8 @@ import { resolve, relative, isAbsolute } from 'node:path'
 import type { Plugin } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { API_AI_MODELS, API_AI_CHAT } from '../shared/constants'
+import { readBody, jsonResponse } from './httpUtils'
 import type { RootRef } from './index'
-
-const MAX_BODY_BYTES = 1_048_576 // 1 MB
-
-function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let body = ''
-    let bytes = 0
-    req.on('data', (chunk: Buffer | string) => {
-      bytes +=
-        typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length
-      if (bytes > MAX_BODY_BYTES) {
-        req.destroy()
-        reject(new Error('Request body too large'))
-        return
-      }
-      body += chunk
-    })
-    req.on('end', () => resolve(body))
-    req.on('error', reject)
-  })
-}
-
-function jsonResponse(
-  res: ServerResponse,
-  status: number,
-  data: unknown,
-): void {
-  res.writeHead(status, { 'Content-Type': 'application/json' })
-  res.end(JSON.stringify(data))
-}
 
 async function handleModels(
   _req: IncomingMessage,
