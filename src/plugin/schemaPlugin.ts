@@ -4,6 +4,7 @@ import type { Plugin } from 'vite'
 import { API_SCHEMA, HMR_SCHEMA_UPDATE } from '../shared/constants'
 import type { PropInfo } from '../shared/types'
 import { findTsconfig } from './findTsconfig'
+import { jsonResponse } from './httpUtils'
 import type { RootRef } from './index'
 
 export type { PropInfo }
@@ -234,8 +235,7 @@ export function schemaPlugin(rootRef: RootRef): Plugin {
         const componentPath = url.searchParams.get('component')
 
         if (!componentPath) {
-          res.writeHead(400, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Missing component query param' }))
+          jsonResponse(res, 400, { error: 'Missing component query param' })
           return
         }
 
@@ -245,8 +245,7 @@ export function schemaPlugin(rootRef: RootRef): Plugin {
         // Verify the file is inside the project root
         const rel = relative(root, absPath)
         if (rel.startsWith('..') || isAbsolute(rel)) {
-          res.writeHead(403, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Path outside project root' }))
+          jsonResponse(res, 403, { error: 'Path outside project root' })
           return
         }
 
@@ -254,12 +253,10 @@ export function schemaPlugin(rootRef: RootRef): Plugin {
           const tsconfigPath = findTsconfig(root)
           const props = extractProps(absPath, tsconfigPath)
 
-          res.writeHead(200, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ props }))
+          jsonResponse(res, 200, { props })
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err)
-          res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: message }))
+          jsonResponse(res, 500, { error: message })
         }
       })
     },
