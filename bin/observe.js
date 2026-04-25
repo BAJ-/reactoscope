@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { resolve, relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { existsSync } from 'node:fs'
-import { createServer } from 'vite'
-import react from '@vitejs/plugin-react'
+const { resolve, relative } = await import('node:path')
+const { fileURLToPath } = await import('node:url')
+const { existsSync } = await import('node:fs')
+const { createServer } = await import('vite')
+const { default: react } = await import('@vitejs/plugin-react')
 
 const componentPath = process.argv[2]
 
@@ -32,11 +32,8 @@ if (rel.startsWith('..')) {
 
 const pkgRoot = resolve(fileURLToPath(import.meta.url), '../..')
 
-// Dynamic import so this works whether the user installed the package
-// or is running from the repo itself.
 const { observatory } = await import(resolve(pkgRoot, 'dist/plugin.mjs'))
 
-/** Check whether the user's Vite config already includes a React plugin. */
 function hasReactPlugin(plugins) {
   const reactPluginNames = new Set([
     'vite:react-babel',
@@ -49,8 +46,6 @@ function hasReactPlugin(plugins) {
   })
 }
 
-// Build the plugin list — always include observatory,
-// only add react() if the user's config doesn't already provide one.
 const extraPlugins = [...observatory()]
 
 const server = await createServer({

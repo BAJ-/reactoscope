@@ -9,9 +9,14 @@ import { ErrorBoundary } from './ErrorBoundary'
 import {
   MSG_PROPS,
   MSG_RENDERED,
+  MSG_STRESS_START,
+  MSG_STRESS_TIMING,
+  MSG_STRESS_RESULT,
+  MSG_STRESS_ERROR,
   API_SCHEMA,
   COMPONENT_ROOT_ID,
 } from '@/shared/constants'
+import { runClientStressTest } from '@/lib/stressRunner'
 
 export function ComponentRenderer() {
   const params = new URLSearchParams(window.location.search)
@@ -48,18 +53,52 @@ export function ComponentRenderer() {
       })
   }, [componentPath])
 
-  // Listen for prop updates from the parent window
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      if (e.origin === window.location.origin && e.data?.type === MSG_PROPS) {
+      if (e.origin !== window.location.origin) return
+      if (e.data?.type === MSG_PROPS) {
         setSerializableProps(e.data.props)
+      }
+      if (e.data?.type === MSG_STRESS_START && Component) {
+        const { iterations = 100, warmup = 10, runId } = e.data
+        const resolvedProps =
+          propInfos.length > 0
+            ? resolveProps(serializableProps, propInfos)
+            : (serializableProps as Record<string, unknown>)
+        runClientStressTest({
+          Component: Component as React.ComponentType<Record<string, unknown>>,
+          props: resolvedProps,
+          iterations,
+          warmup,
+          onTimingComplete: (result) => {
+            window.parent.postMessage(
+              { type: MSG_STRESS_TIMING, runId, result },
+              window.location.origin,
+            )
+          },
+        })
+          .then((result) => {
+            window.parent.postMessage(
+              { type: MSG_STRESS_RESULT, runId, result },
+              window.location.origin,
+            )
+          })
+          .catch((err) => {
+            window.parent.postMessage(
+              {
+                type: MSG_STRESS_ERROR,
+                runId,
+                error: err instanceof Error ? err.message : String(err),
+              },
+              window.location.origin,
+            )
+          })
       }
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [])
+  }, [Component, propInfos, serializableProps])
 
-  // Signal to parent that we've rendered after each props change
   useEffect(() => {
     requestAnimationFrame(() => {
       window.parent.postMessage({ type: MSG_RENDERED }, window.location.origin)

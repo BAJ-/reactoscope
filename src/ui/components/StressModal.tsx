@@ -72,9 +72,10 @@ export function HealthPanel({
   autoRun,
   onAutoRunChange,
 }: HealthPanelProps) {
+  const result = run.clientResult ?? run.ssrResult
   const findings = useMemo(
-    () => (run.result ? analyzeHealth(run.result) : null),
-    [run.result],
+    () => (result ? analyzeHealth(result) : null),
+    [result],
   )
 
   return (
@@ -120,7 +121,7 @@ export function HealthPanel({
         </div>
       )}
 
-      {!run.running && findings && run.result && (
+      {!run.running && findings && result && (
         <>
           <div
             className={`stress-summary ${severityClass(worstSeverity(findings))}`}
@@ -129,7 +130,7 @@ export function HealthPanel({
             {worstSeverity(findings) === 'warn' && 'Minor concerns found'}
             {worstSeverity(findings) === 'fail' && 'Problems detected'}
             <span className="stress-summary-detail">
-              {run.result.totalRenders} renders analyzed
+              {result.totalRenders} renders analyzed
             </span>
           </div>
 

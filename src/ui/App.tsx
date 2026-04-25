@@ -132,7 +132,7 @@ function App() {
     if (!autoRunHealthCheck || !healthCheckOpen || !componentPath) return
     if (autoRunTimerRef.current) clearTimeout(autoRunTimerRef.current)
     autoRunTimerRef.current = setTimeout(() => {
-      runStress(componentPath, activeProps)
+      runStress(componentPath, activeProps, iframeRef)
     }, 500)
     return () => {
       if (autoRunTimerRef.current) clearTimeout(autoRunTimerRef.current)
@@ -151,7 +151,12 @@ function App() {
     if (!autoRunAI || !aiPanelOpen || !componentPath) return
     if (autoRunAITimerRef.current) clearTimeout(autoRunAITimerRef.current)
     autoRunAITimerRef.current = setTimeout(() => {
-      analyze(componentPath, propInfos, activeProps, stressRun.result)
+      analyze(
+        componentPath,
+        propInfos,
+        activeProps,
+        stressRun.clientResult ?? stressRun.ssrResult,
+      )
     }, 1000)
     return () => {
       if (autoRunAITimerRef.current) clearTimeout(autoRunAITimerRef.current)
@@ -210,7 +215,7 @@ function App() {
 
   const handleRunStress = useCallback(() => {
     if (componentPath) {
-      runStress(componentPath, activeProps)
+      runStress(componentPath, activeProps, iframeRef)
     }
   }, [componentPath, activeProps, runStress])
 
@@ -224,14 +229,33 @@ function App() {
 
   const handleAnalyze = useCallback(() => {
     if (componentPath) {
-      analyze(componentPath, propInfos, activeProps, stressRun.result)
+      analyze(
+        componentPath,
+        propInfos,
+        activeProps,
+        stressRun.clientResult ?? stressRun.ssrResult,
+      )
     }
-  }, [componentPath, propInfos, activeProps, stressRun.result, analyze])
+  }, [
+    componentPath,
+    propInfos,
+    activeProps,
+    stressRun.clientResult,
+    stressRun.ssrResult,
+    analyze,
+  ])
 
   const healthCheckSeverity = useMemo(() => {
-    if (!stressRun.result) return null
-    return worstSeverity(analyzeHealth(stressRun.result))
-  }, [stressRun.result])
+    const clientFindings = stressRun.clientResult
+      ? analyzeHealth(stressRun.clientResult)
+      : []
+    const ssrFindings = stressRun.ssrResult
+      ? analyzeHealth(stressRun.ssrResult)
+      : []
+    const all = [...clientFindings, ...ssrFindings]
+    if (all.length === 0) return null
+    return worstSeverity(all)
+  }, [stressRun.clientResult, stressRun.ssrResult])
 
   const handlePinVariant = () => {
     pinVariant(activeProps)
@@ -301,7 +325,11 @@ function App() {
             onChange={handleViewportChange}
             onPinVariant={handlePinVariant}
             onToggleHealthCheck={handleToggleHealthCheck}
-            healthCheckRunning={stressRun.running}
+            healthCheckRunning={
+              stressRun.running ||
+              stressRun.clientMemoryRunning ||
+              stressRun.ssrRunning
+            }
             healthCheckSeverity={healthCheckSeverity}
             onToggleAIPanel={handleToggleAIPanel}
             aiStreaming={aiState.streaming}

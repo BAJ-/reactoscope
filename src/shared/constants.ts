@@ -1,19 +1,14 @@
-/** PostMessage type for sending props from the shell to the iframe. */
 export const MSG_PROPS = 'observatory:props'
-
-/** PostMessage type for the iframe signalling it has rendered. */
 export const MSG_RENDERED = 'observatory:rendered'
+export const MSG_STRESS_START = 'observatory:stress-start'
+export const MSG_STRESS_TIMING = 'observatory:stress-timing'
+export const MSG_STRESS_RESULT = 'observatory:stress-result'
+export const MSG_STRESS_ERROR = 'observatory:stress-error'
 
-/** Vite HMR event name for schema changes. */
 export const HMR_SCHEMA_UPDATE = 'observatory:schema-update'
 
-/** Server endpoint for fetching component prop schemas. */
 export const API_SCHEMA = '/api/schema'
-
-/** Server endpoint for stress testing. */
 export const API_STRESS = '/api/stress'
-
-/** Server endpoint for listing available AI models. */
 export const API_AI_MODELS = '/api/ai/models'
 
 /** Server endpoint for AI chat (streaming). */

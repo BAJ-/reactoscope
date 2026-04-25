@@ -37,7 +37,15 @@ export function uiPlugin(): Plugin {
         return
       }
 
-      // Serve a virtual HTML page for the component iframe.
+      // COOP/COEP scoped to observatory routes for cross-origin isolation
+      server.middlewares.use((req, res, next) => {
+        if ((req.url ?? '').startsWith(ROUTE_BASE)) {
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+          res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless')
+        }
+        next()
+      })
+
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? ''
         if (!url.startsWith(ROUTE_BASE)) {
@@ -69,7 +77,6 @@ export function uiPlugin(): Plugin {
         return
       })
 
-      // Serve the Observatory UI at /__observatory
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? ''
 
@@ -78,14 +85,12 @@ export function uiPlugin(): Plugin {
           return
         }
 
-        // Strip the route base and query string
         let assetPath = url.slice(ROUTE_BASE.length) || '/'
         const queryIndex = assetPath.indexOf('?')
         if (queryIndex >= 0) {
           assetPath = assetPath.slice(0, queryIndex)
         }
 
-        // Serve the UI HTML for the base route
         if (
           assetPath === '' ||
           assetPath === '/' ||

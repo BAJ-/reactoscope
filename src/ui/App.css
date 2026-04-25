@@ -998,6 +998,37 @@
   background: var(--hover-bg);
 }
 
+.stress-rerun-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stress-loading-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.finding-loading {
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
 /* ── Health status dot ───────────────────────── */
 
 .health-status-dot {
