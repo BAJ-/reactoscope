@@ -1,3 +1,4 @@
+import { type RefObject } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useStress } from './useStress'
@@ -9,7 +10,8 @@ import {
 } from '@/shared/constants'
 import type { StressResult } from '@/shared/analyzeHealth'
 
-const FAKE_ORIGIN = 'http://localhost:3000'
+// jsdom default origin
+const FAKE_ORIGIN = window.location.origin
 
 function fakeStressResult(overrides?: Partial<StressResult>): StressResult {
   return {
@@ -32,7 +34,7 @@ function makeIframeRef(hasContentWindow = true) {
     current: hasContentWindow
       ? ({ contentWindow: { postMessage } } as unknown as HTMLIFrameElement)
       : null,
-  } as React.RefObject<HTMLIFrameElement | null>
+  } as RefObject<HTMLIFrameElement | null>
   return { ref, postMessage }
 }
 
@@ -44,10 +46,6 @@ function postFromIframe(data: Record<string, unknown>) {
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn())
-  Object.defineProperty(window, 'location', {
-    value: { origin: FAKE_ORIGIN },
-    writable: true,
-  })
 })
 
 afterEach(() => {

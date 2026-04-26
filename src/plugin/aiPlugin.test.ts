@@ -21,7 +21,7 @@ function fakeRes(): ServerResponse & {
   _written: string[]
   done: Promise<void>
 } {
-  let resolveDone: () => void
+  let resolveDone!: () => void
   const done = new Promise<void>((r) => {
     resolveDone = r
   })

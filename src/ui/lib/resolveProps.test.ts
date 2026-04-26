@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { resolveProps, readPropsFromUrl } from './resolveProps'
 import type { PropInfo } from '@/shared/types'
 import { UNSET } from '@/shared/constants'
@@ -91,27 +91,26 @@ describe('resolveProps', () => {
 })
 
 describe('readPropsFromUrl', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/')
+  })
+
   it('returns empty object when no props param', () => {
-    Object.defineProperty(window, 'location', {
-      value: { search: '' },
-      writable: true,
-    })
+    window.history.replaceState({}, '', '/')
     expect(readPropsFromUrl()).toEqual({})
   })
 
   it('parses valid JSON props from URL', () => {
-    Object.defineProperty(window, 'location', {
-      value: { search: '?props=' + encodeURIComponent('{"name":"test"}') },
-      writable: true,
-    })
+    window.history.replaceState(
+      {},
+      '',
+      '/?props=' + encodeURIComponent('{"name":"test"}'),
+    )
     expect(readPropsFromUrl()).toEqual({ name: 'test' })
   })
 
   it('returns empty object for invalid JSON', () => {
-    Object.defineProperty(window, 'location', {
-      value: { search: '?props=not-json' },
-      writable: true,
-    })
+    window.history.replaceState({}, '', '/?props=not-json')
     expect(readPropsFromUrl()).toEqual({})
   })
 })
